@@ -160,7 +160,7 @@ namespace EventEase.Controllers
 
         private async Task<string> UploadImageToBlobAsync(IFormFile imageFile)
         {
-            var connectionString = "DefaultEndpointsProtocol=https;AccountName=poecldv6211canadatest;AccountKey=Mp2fP8zuKNAynfcb21G3soOa2dwHbQx2ujTLtyutOScHsDDay+9zE/ncQCks5hmBs+v/c8m27Mp2+ASt4aLXxQ==;EndpointSuffix=core.windows.net";
+            var connectionString = "DefaultEndpointsProtocol=https;AccountName=poecldv6211canadatest;AccountKey=AGB7JU8Tt09kj8oZNspuirE/g5ySYAlXaIyKSYD9nFiURq00sguIDKOd0nRLAUC+ag2ywZkCKnfr+AStN1sVxQ==;EndpointSuffix=core.windows.net";
             var containerName = "cldvpoe6211part2container";
 
             var blobServiceClient = new BlobServiceClient(connectionString);
