@@ -14,29 +14,82 @@ namespace EventEase.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var booking = await _context.Booking.Include(b => b.Venue).Include(b => b.Event).ToListAsync();
-            return View(booking);
+            var booking =  _context.Booking
+                .Include(b => b.Venue)
+                .Include(b => b.Event)
+                .AsQueryable();
+
+            if(!string.IsNullOrEmpty(searchString))
+            {
+                booking = booking.Where(b => b.Event.EventName.Contains(searchString) || b.Venue.Location.Contains(searchString));
+            }
+                return View(await booking.ToListAsync());
         }
+        //what happpens when the user clicks on the create button
         public IActionResult Create()
         {
-            ViewBag.VenueId = new SelectList(_context.Venue, "VenueId", "Location");
             ViewBag.EventId = new SelectList(_context.Event, "EventId", "EventName");
+            ViewBag.VenueId = new SelectList(_context.Venue, "VenueId", "Location");
             return View();
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
+
         public async Task<IActionResult> Create(Booking booking)
         {
+            var selectedEvent = await _context.Event.FirstOrDefaultAsync(e => e.EventId == booking.EventId);
+
+            if (selectedEvent == null)
+            {
+                ModelState.AddModelError("", "Selected event not found.");
+                ViewData["Events"] = _context.Event.ToList();
+                ViewData["Venues"] = _context.Venue.ToList();
+                return View(booking);
+            }
+
+            // Check manually for double booking
+            var conflict = await _context.Booking
+                .Include(b => b.Event)
+                .AnyAsync(b => b.VenueId == booking.VenueId &&
+                               b.Event.EventDate.Date == selectedEvent.EventDate.Date);
+
+            if (conflict)
+            {
+                ModelState.AddModelError("", "This venue is already booked for that date.");
+                ViewData["Events"] = _context.Event.ToList();
+                ViewData["Venues"] = _context.Venue.ToList();
+                return View(booking);
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(booking);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(booking);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Booking created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex)
+                {
+                    // If database constraint fails (e.g., unique key violation), show friendly message
+                    ModelState.AddModelError("", "This venue is already booked for that date.");
+                    ViewData["Events"] = _context.Event.ToList();
+                    ViewData["Venues"] = _context.Venue.ToList();
+                    return View(booking);
+                }
             }
+
+            ViewData["Events"] = _context.Event.ToList();
+            ViewData["Venues"] = _context.Venue.ToList();
             return View(booking);
         }
+
+
+        //------------------------------------------------------------------------ old code under
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -57,6 +110,7 @@ namespace EventEase.Controllers
             }
             return View(booking);
         }
+
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

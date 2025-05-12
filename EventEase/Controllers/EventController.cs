@@ -37,6 +37,7 @@ namespace EventEase.Controllers
             return View(events);
         }
 
+
         public async Task<IActionResult> Details(int? id)
         {
             var events = await _context.Booking.FirstOrDefaultAsync(m => m.EventId == id);
@@ -47,35 +48,53 @@ namespace EventEase.Controllers
             return View(events);
         }
 
+        //1: cofirming the delete action (GET)
         public async Task<IActionResult> Delete(int? id)
         {
-            var events = await _context.Event.FirstOrDefaultAsync(m => m.EventId == id);
-            if (events == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
+
+            var events = await _context.Event
+                .Include(e => e.Venue)
+                .FirstOrDefaultAsync(m => m.EventId == id);
+
+            if (events == null) return NotFound();
             return View(events);
         }
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+
+        //2: Performing the delete action (POST) -> added logic to check if the event has any bookings associated with it
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Check if the event exists
             var events = await _context.Event.FindAsync(id);
+            if (events == null) return NotFound();
+
+            var isBooked = await _context.Booking.AnyAsync(b => b.EventId == id);
+            if (isBooked)
+            {
+                TempData["ErrorMessage"] = "Cannot delete event with existing bookings.";
+                return RedirectToAction(nameof(Index));
+            }
             _context.Event.Remove(events);
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Event deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool EventExists(int id)
         {
             return _context.Event.Any(e => e.EventId == id);
         }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-         
+
             var events = await _context.Event.FindAsync(id);
             if (events == null)
             {
@@ -86,15 +105,15 @@ namespace EventEase.Controllers
         }
 
         [HttpPost]
-       
+
         public async Task<IActionResult> Edit(int id, Event events)
         {
-            
+
             if (id != events.EventId)
             {
                 return NotFound();
             }
-        
+
             if (ModelState.IsValid)
             {
                 try

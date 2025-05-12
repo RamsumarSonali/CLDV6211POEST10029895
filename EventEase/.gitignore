@@ -1,0 +1,8 @@
+# Ignore build outputs and Visual Studio files
+.vs/
+bin/
+obj/
+EventEase/obj/
+EventEase/bin/
+EventEase/.vs/
+**/PubTmp/

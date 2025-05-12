@@ -1,10 +1,28 @@
 ﻿@model IEnumerable<EventEase.Models.Venue>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Venue List";
 }
 
 <h1>Index</h1>
+
+
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+
+}
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -22,7 +40,10 @@
                 @Html.DisplayNameFor(model => model.Capacity)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ImageUrl)
+               
+                <th>
+                    Venue Image
+                </th>
             </th>
             <th></th>
         </tr>
@@ -40,7 +61,15 @@
                 @Html.DisplayFor(modelItem => item.Capacity)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ImageUrl)
+              
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="Venue Image" width="100" height="100" style="object-fit:cover; border-radius:8px" />
+                    }
+                    else
+                    {
+                        <span>No Image Available</span>
+                    })
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.VenueId">Edit</a> |
