@@ -6,13 +6,15 @@
 
 <h1>Index</h1>
 
-<form asp-actions="index" method="get">
+<form asp-action="Index" method="get">
     <div class="form-group">
-        <label for="search">Search Venues:</label>
-        <input type="text" name="searchString" class="form-control" placeholder="Search Bookings..." value="@Context.Request.QueryString" />
+        <label for="search">Search Event:</label>
+        <input type="text" name="searchString" class="form-control" placeholder="Search Event..." value="@Context.Request.Query["searchString"]" />
     </div>
     <button type="submit" class="btn btn-primary">Search</button>
-        </form>
+</form>
+
+
 
         @if (TempData["SuccessMessage"] !=null)
         {
