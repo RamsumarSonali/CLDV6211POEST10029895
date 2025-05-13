@@ -68,8 +68,8 @@ namespace EventEase.Controllers
         {
             if (id == null) return NotFound();
 
-                var venue = await _context.Venue.FirstOrDefaultAsync(m => m.VenueId == id);
-                if (venue == null) return NotFound();
+            var venue = await _context.Venue.FirstOrDefaultAsync(m => m.VenueId == id);
+            if (venue == null) return NotFound();
 
             return View(venue);
 
@@ -98,8 +98,6 @@ namespace EventEase.Controllers
             TempData["SuccessMessage"] = "Venue deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
-
-
 
         //-------------------------old code-------------------------
 

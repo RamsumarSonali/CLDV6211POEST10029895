@@ -1,4 +1,6 @@
-﻿namespace EventEase.Models
+﻿using EventEase.Models;
+
+namespace EventEase.Models
 {
     public class Booking
     {

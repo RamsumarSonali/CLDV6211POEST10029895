@@ -16,7 +16,7 @@ namespace EventEase.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var events = await _context.Event.ToListAsync();
+            var events = await _context.Event.Include(e => e.Venue).ToListAsync();
             return View(events);
         }
         public IActionResult Create()
@@ -26,7 +26,7 @@ namespace EventEase.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Event events)
+        public async Task<IActionResult> Create([Bind("EventId,EventName,EventDate,VenueId,ImageUrl")] Event events)
         {
             if (ModelState.IsValid)
             {
@@ -106,7 +106,7 @@ namespace EventEase.Controllers
 
         [HttpPost]
 
-        public async Task<IActionResult> Edit(int id, Event events)
+        public async Task<IActionResult> Edit(int id, [Bind("EventId,EventName,EventDate,VenueId,ImageUrl")] Event events)
         {
 
             if (id != events.EventId)

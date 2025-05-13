@@ -12,10 +12,14 @@ namespace EventEase.Models
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Capacity must be a greater than 0.")]
         public int Capacity { get; set; }
+        public ICollection<Booking>? Bookings { get; set; }
         public string? ImageUrl { get; set; }
         //add this new one - only for uploading from the Create/Edit form
         [NotMapped]
         public IFormFile? ImageFile { get; set; }
+
+       
+        public List<Event>? Events { get; set; } = new();
 
     }
 }
