@@ -14,16 +14,39 @@ namespace EventEase.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchType, int? venueId, DateTime? startDate, DateTime? endDate)
         {
-            var events = await _context.Event.Include(e => e.Venue).ToListAsync();
-            return View(events);
+            var events = _context.Event
+                .Include(e => e.Venue)
+                .Include(e => e.EventType)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchType))
+            {
+                events = events.Where(e => e.EventType.Name == searchType);
+            }
+            if (venueId.HasValue)
+            {
+                events = events.Where(e => e.VenueId == venueId);
+            }
+            if(startDate.HasValue && endDate.HasValue)
+            {
+                events = events.Where(e => e.EventDate >= startDate && e.EventDate <= endDate);
+            }
+
+            //drop down filters
+            ViewData["EventTypes"] = _context.EventType.ToList();
+            ViewData["Venues"] = _context.Venue.ToList();
+
+            return View(await events.ToListAsync());
         }
         public IActionResult Create()
         {
-            ViewBag.VenueId = new SelectList(_context.Venue, "VenueId", "Location");
+            ViewData["Venues"] = _context.Venue.ToList();
+            ViewData["EventTypes"] = _context.EventType.ToList();
             return View();
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Create([Bind("EventId,EventName,EventDate,VenueId,ImageUrl")] Event events)
@@ -32,19 +55,24 @@ namespace EventEase.Controllers
             {
                 _context.Add(events);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Event created successfully.";
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["Venues"] = _context.Venue.ToList();
+            ViewData["EventTypes"] = _context.EventType.ToList();
             return View(events);
         }
 
 
         public async Task<IActionResult> Details(int? id)
         {
-            var events = await _context.Booking.FirstOrDefaultAsync(m => m.EventId == id);
-            if (events == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
+
+            var events = await _context.Event
+                .Include(e => e.Venue)
+                .FirstOrDefaultAsync(m => m.EventId == id);
+
+            if (events == null) return NotFound();
             return View(events);
         }
 
@@ -100,12 +128,13 @@ namespace EventEase.Controllers
             {
                 return NotFound();
             }
-            ViewBag.VenueId = new SelectList(_context.Venue, "VenueId", "Location", events.VenueId);
+            ViewData["Venues"] = _context.Venue.ToList();
+            ViewData["EventTypes"] = _context.EventType.ToList();
             return View(events);
         }
 
         [HttpPost]
-
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("EventId,EventName,EventDate,VenueId,ImageUrl")] Event events)
         {
 
@@ -139,6 +168,3 @@ namespace EventEase.Controllers
         }
     }
 }
-
-
-
